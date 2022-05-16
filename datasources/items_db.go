@@ -12,8 +12,8 @@ var (
 	Client   *sql.DB
 	username = "root"
 	password = ""
-	// host     = "localhost:3306"
-	host = "host.docker.internal" // for docker
+	host     = "localhost:3306"
+	// host = "host.docker.internal" // for docker
 	name     = "users_db"
 )
 

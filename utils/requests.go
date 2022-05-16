@@ -17,8 +17,8 @@ func AuthenticateToken(r *http.Request) (int64, *errors.RestErr) {
 	token := r.Header["Authorization"][0]
 
 	client := &http.Client{}
-	// req, err := http.NewRequest("GET", "http://localhost:9092/token/login", nil)
-	req, err := http.NewRequest("GET", "http://users:9092/token/login", nil)
+	req, err := http.NewRequest("GET", "http://localhost:9092/token/login", nil)
+	// req, err := http.NewRequest("GET", "http://users:9092/token/login", nil)
 	if err != nil {
 		return -1, errors.NewBadRequestError(err.Error())
 	}
