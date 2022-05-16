@@ -1,0 +1,21 @@
+1. post /items --> create item 
+2. get /items --> getParticular item
+3. put /items --> update this product
+4. delete /items --> delete this product
+
+signup
+signin -> returns token(24 hours expiry)
+token/login -> login using token
+
+/items --> post -> create item
+/items/:itemId --> get -> get particular item
+/items/ --> delete -> delete particular item
+
+
+make them work on the same sql database
+
+host a database online
+
+host both apps on heroku
+
+make a frontend as well

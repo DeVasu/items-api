@@ -1,0 +1,14 @@
+version: '3.0'
+
+services:
+
+  web: 
+    image: items-api:1.0.0
+    ports: 
+      - 8000:8000
+    links:
+      - users
+  users:
+    image: token-jwt:1.0.0
+    ports:
+      - 9092:9092
