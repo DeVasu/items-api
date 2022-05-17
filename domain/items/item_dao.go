@@ -12,11 +12,38 @@ const (
 	queryUpdateItem 		= "UPDATE items SET title=?, seller=?, price=?, stock=?, sold_quantity=? WHERE id = ?;"
 	queryById 				= "SELECT title, seller, price, stock, sold_quantity, createdAt from items where id=?;"
 	queryDeleteItem 		= "DELETE FROM items WHERE id = ?;"
-	queryListItems			= "SELECT id, title, seller, price, stock, sold_quantity FROM items;"
+	queryListItems			= "SELECT id, title, seller, price, stock, sold_quantity FROM items order by createdAt desc;"
+	queryGetItemsByUserId   = "SELECT id, title, seller, price, stock, sold_quantity FROM items WHERE seller = ? order by createdAt desc;"
 	// queryListProducts 			= "SELECT * from products;"
 	// queryDeleteProduct = "DELETE FROM products WHERE id=?;"
 	
 )
+
+func (item *Item) GetByUserId() ([]*Item, *errors.RestErr) {
+	stmt, err := datasources.Client.Prepare(queryGetItemsByUserId)
+	if err != nil {
+		return nil, errors.NewInternalServerError("error when tying to get item" + err.Error())
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query(item.Seller) //update with limit and skip
+	if err != nil {
+		return nil, errors.NewInternalServerError("error when tying to get cashier" + err.Error())
+	}
+	defer rows.Close()
+
+	results := make([]*Item, 0)
+	for rows.Next() {
+		x := &Item{}
+		if err := rows.Scan(&x.Id, &x.Title, &x.Seller, &x.Price,&x.Stock,&x.SoldQuantity); err != nil {
+			return nil, errors.NewInternalServerError("error when tying to gett cashier"+ err.Error())
+		}
+		results = append(results, x)
+	}
+	if len(results) == 0 {
+		return nil, errors.NewNotFoundError(fmt.Sprintf("no cashiers matching status %s", "ok"))
+	}
+	return results, nil	
+}
 
 func (item *Item) List() ([]*Item, *errors.RestErr) {
 	stmt, err := datasources.Client.Prepare(queryListItems)

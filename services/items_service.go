@@ -16,9 +16,20 @@ type itemsServiceInterface interface {
 	Update(items.Item, int64) (*items.Item, *errors.RestErr)
 	Delete(items.Item, int64) *errors.RestErr
 	List() ([]*items.Item, *errors.RestErr)
+	GetByUserId(int64) ([]*items.Item, *errors.RestErr)
 }
 
 type itemsService struct{}
+
+func (s *itemsService) GetByUserId(userId int64) ([]*items.Item, *errors.RestErr) {
+
+	temp := items.Item{
+		Seller: userId,
+	}
+
+	return temp.GetByUserId()
+
+}
 
 func (s *itemsService) List() ([]*items.Item, *errors.RestErr) {
 
