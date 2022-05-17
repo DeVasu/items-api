@@ -16,23 +16,21 @@ var (
 	ItemsController itemsControllerInterface = &itemsController{}
 )
 
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-}
-
 type itemsControllerInterface interface {
 	Create(w http.ResponseWriter, r *http.Request)
 	Get(w http.ResponseWriter, r *http.Request) 
 	Update(w http.ResponseWriter, r *http.Request) 
 	Delete(w http.ResponseWriter, r *http.Request) 
 	List(w http.ResponseWriter, r *http.Request) 
+	GetByUserId(w http.ResponseWriter, r *http.Request) 
+
 }
 
 type itemsController struct {}
 
 func (c* itemsController) Delete(w http.ResponseWriter, r *http.Request) {
 	// authenticate user using oauth microservice
-	enableCors(&w)
+	utils.EnableCors(&w)
 	itemId := mux.Vars(r)["itemId"]
 	itemIdInt, intErr := strconv.Atoi(itemId)
 	if intErr != nil {
@@ -60,8 +58,15 @@ func (c* itemsController) Delete(w http.ResponseWriter, r *http.Request) {
 
 func (c* itemsController) Create(w http.ResponseWriter, r *http.Request) {
 	// authenticate user using oauth microservice
-	enableCors(&w)
+	utils.EnableCors(&w)
 
+	if r.Method == "OPTIONS" {
+		utils.RespondJson(w, http.StatusOK, map[string]string{"string":"working"})
+	}
+	// (w).Header().Set("Access-Control-Allow-Origin", "*")
+	// (w).Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	// (w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Authorization")
+	// (w).Header().Set("Content-Type", "application/json")
 
 	userId, err := utils.AuthenticateToken(r)
 	if err != nil {
@@ -70,10 +75,13 @@ func (c* itemsController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 
+	// body, _ := ioutil.ReadAll(r.Body)
+	// fmt.Println(string(body))
+
 	item := items.Item{}
 
 	if err := json.NewDecoder(r.Body).Decode(&item) ; err != nil {
-		badErr := errors.NewBadRequestError("something wrong with the input")
+		badErr := errors.NewBadRequestError("something wrong with the input" + err.Error())
 		utils.RespondError(w, *badErr)
 		return
 	}
@@ -88,7 +96,7 @@ func (c* itemsController) Create(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJson(w, http.StatusCreated, result)
 }
 func (c* itemsController) Update(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	// authenticate user using oauth microservice
 	itemId := mux.Vars(r)["itemId"]
@@ -124,7 +132,7 @@ func (c* itemsController) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c* itemsController) Get(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 	
 	itemId := mux.Vars(r)["itemId"]
@@ -144,7 +152,7 @@ func (c* itemsController) Get(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJson(w, http.StatusOK, item)
 }
 func (c* itemsController) List(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
+	utils.EnableCors(&w)
 
 
 	items, err := services.ItemsService.List()
@@ -159,4 +167,26 @@ func (c* itemsController) List(w http.ResponseWriter, r *http.Request) {
 func Ping(w http.ResponseWriter, r*http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("pong"))
+}
+
+func (c* itemsController) GetByUserId(w http.ResponseWriter,r *http.Request) {
+	utils.EnableCors(&w)
+
+	if r.Method == "OPTIONS" {
+		utils.RespondJson(w, http.StatusOK, map[string]string{"string":"working"})
+	}
+
+	userId, err := utils.AuthenticateToken(r)
+	if err != nil {
+		utils.RespondError(w, *err)
+		return
+	}
+
+	items, err := services.ItemsService.GetByUserId(userId)
+	if err != nil {
+		utils.RespondError(w, *err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	utils.RespondJson(w, http.StatusOK, items)
 }
