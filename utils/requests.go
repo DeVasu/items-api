@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 func AuthenticateToken(r *http.Request) (int64, *errors.RestErr) {
@@ -14,7 +15,15 @@ func AuthenticateToken(r *http.Request) (int64, *errors.RestErr) {
 		return -1, errors.NewBadRequestError("authentication failed")
 	}
 
+
+
 	token := r.Header["Authorization"][0]
+
+
+	if token == "null" {
+		return -1, errors.NewBadRequestError("please login for this ops")
+	}
+
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://localhost:9092/token/login", nil)
@@ -25,7 +34,10 @@ func AuthenticateToken(r *http.Request) (int64, *errors.RestErr) {
 	req.Header.Set("Authorization", token) 
 	res, err := client.Do(req)
 	if err != nil {
-		return -1, errors.NewBadRequestError(err.Error())
+		if strings.Contains(err.Error(), "connection refused") {
+			return -1, errors.NewInternalServerError("authentication system is not working")
+		}
+		return -1, errors.NewInternalServerError(err.Error())
 	}
 	body, _ := ioutil.ReadAll(res.Body)
 	x := make(map[string]interface{})
